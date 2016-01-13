@@ -1,0 +1,16 @@
+let s:unite_javaimport = {
+\ "name" : "javaimport",
+\ "description": "test example",
+\}
+
+function! s:unite_javaimport.gather_candidates(args, context)
+  let lines = readfile('/home/miyazaki/work/devipl/minimal_java/unite_source/tmp.txt')
+  return map(lines, '{
+\   "word": v:val,
+\   "source": "javaimport",
+\   "kind": "word",
+\ }')
+endfunction
+
+call unite#define_source(s:unite_javaimport)
+unlet s:unite_javaimport
