@@ -4,8 +4,16 @@ let s:unite_javaimport = {
 \}
 
 function! s:unite_javaimport.gather_candidates(args, context)
-  let lines = readfile('/home/miyazaki/work/devipl/minimal_java/unite_source/tmp.txt')
-  return map(lines, '{
+  let java = system("which java")
+  let java_home = system("readlink ".java)
+  let java_home = system("readlink ".java_home)
+  let rt_jar = substitute(java_home, "/bin/java", "/lib/rt.jar", "g")
+
+  let jar_tf = systemlist("jar tf ".rt_jar)
+  let classes = filter(jar_tf, 'v:val =~ ".*class"')
+  let classes = filter(classes, 'v:val !~ "$.*class"')
+
+  return map(classes, '{
 \   "word": v:val,
 \   "source": "javaimport",
 \   "kind": "word",
