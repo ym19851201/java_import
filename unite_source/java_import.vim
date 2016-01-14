@@ -39,18 +39,34 @@ function! s:unite_javaimport.gather_candidates(args, context)
   let rt_jar = substitute(java_home, "/bin/java", "/lib/rt.jar", "g")
 
   let jar_tf = systemlist("jar tf ".rt_jar)
-  let classes = filter(jar_tf, 'v:val =~ ".*class"')
-  let classes = filter(classes, 'v:val !~ "$.*class"')
-  let classes = filter(classes, 'v:val !~ "^com\.oracle"')
-  let classes = filter(classes, 'v:val !~ "^com\.sun"')
-  let classes = filter(classes, 'v:val !~ "^sun"')
-  let classes = filter(classes, 'v:val !~ "^sunw"')
-  let classes = filter(classes, 'v:val !~ "^org\.ietf"')
-  let classes = filter(classes, 'v:val !~ "^org\.jcp"')
-  let classes = filter(classes, 'v:val !~ "^org\.omg"')
-  let classes = filter(classes, 'v:val !~ "^org\.w3c"')
-  let classes = filter(classes, 'v:val !~ "^org\.xml"')
-  let classes = filter(classes, 'v:val !~ "^java\.lang"')
+  let classes = filter(jar_tf, '
+        \v:val =~ ".*class"
+        \&& v:val !~ "$.*class"
+        \&& v:val !~ "^com\.oracle"
+        \&& v:val !~ "^com\.sun"
+        \&& v:val !~ "^sun"
+        \&& v:val !~ "^sunw"
+        \&& v:val !~ "^org\.ietf"
+        \&& v:val !~ "^org\.jcp"
+        \&& v:val !~ "^org\.omg"
+        \&& v:val !~ "^org\.w3c"
+        \&& v:val !~ "^org\.xml"
+        \&& v:val !~ "^java\.lang"
+        \')
+
+  if filereadable('./.classpath') == 1
+    let cps = split(readfile('./.classpath')[0], ':')
+    let jars = filter(copy(cps), 'v:val =~ ".*jar"')
+    let srcs = filter(copy(cps), 'v:val !~ ".*jar"')
+    for jar in jars
+      let jar_tf = filter(systemlist("jar tf ".jar), 'v:val =~ ".*class" && v:val !~ "$.*class"')
+      let classes += jar_tf
+    endfor
+
+    let src_str = substitute(globpath(join(srcs, ','), '**/*.java'), getcwd().'/\(src\)\|\(test\)/', '', 'g')
+    let src_cps = split(src_str, '\n')
+    let classes += map(src_cps, 'substitute(v:val, "^/", "", "g")')
+  endif
 
   return map(classes, '{
 \   "word": substitute(substitute(v:val, ".class", "", "g"), "/", ".", "g"),
