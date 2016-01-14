@@ -10,6 +10,9 @@ let s:unite_javaimport = {
 \}
 
 function! s:unite_javaimport.action_table.complete_import.func(candidate)
+  let current_row = line('.')
+  let current_col = col('.')
+
   call cursor(line('$'), 1)
   let first_import = search("^import")
   if first_import == 0
@@ -25,6 +28,8 @@ function! s:unite_javaimport.action_table.complete_import.func(candidate)
   let first_str = printf('%s', first_import)
   let last_str = printf('%s', last_import+1)
   execute first_str.','.last_str.'sort'
+
+  call cursor(current_row, current_col)
 endfunction
 
 function! s:unite_javaimport.gather_candidates(args, context)
@@ -36,6 +41,16 @@ function! s:unite_javaimport.gather_candidates(args, context)
   let jar_tf = systemlist("jar tf ".rt_jar)
   let classes = filter(jar_tf, 'v:val =~ ".*class"')
   let classes = filter(classes, 'v:val !~ "$.*class"')
+  let classes = filter(classes, 'v:val !~ "^com\.oracle"')
+  let classes = filter(classes, 'v:val !~ "^com\.sun"')
+  let classes = filter(classes, 'v:val !~ "^sun"')
+  let classes = filter(classes, 'v:val !~ "^sunw"')
+  let classes = filter(classes, 'v:val !~ "^org\.ietf"')
+  let classes = filter(classes, 'v:val !~ "^org\.jcp"')
+  let classes = filter(classes, 'v:val !~ "^org\.omg"')
+  let classes = filter(classes, 'v:val !~ "^org\.w3c"')
+  let classes = filter(classes, 'v:val !~ "^org\.xml"')
+  let classes = filter(classes, 'v:val !~ "^java\.lang"')
 
   return map(classes, '{
 \   "word": substitute(substitute(v:val, ".class", "", "g"), "/", ".", "g"),
