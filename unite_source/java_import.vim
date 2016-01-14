@@ -12,6 +12,12 @@ let s:unite_javaimport = {
 function! s:unite_javaimport.action_table.complete_import.func(candidate)
   call cursor(line('$'), 1)
   let first_import = search("^import")
+  if first_import == 0
+    let package_line = search("^package")
+    call append(package_line, "")
+    call append(package_line+1, "import ".a:candidate.word.";")
+    return
+  endif
 
   call cursor(1, 1)
   let last_import = search("^import", 'b')
