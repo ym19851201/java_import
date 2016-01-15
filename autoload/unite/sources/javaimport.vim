@@ -76,5 +76,7 @@ function! s:unite_javaimport.gather_candidates(args, context)
 \ }')
 endfunction
 
-call unite#define_source(s:unite_javaimport)
-unlet s:unite_javaimport
+
+function! unite#sources#javaimport#define()
+  return [deepcopy(s:unite_javaimport)]
+endfunction
