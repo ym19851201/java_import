@@ -6,6 +6,7 @@ let s:unite_javaimport = {
 \     "description": "complete",
 \   }
 \ },
+\ "max_candidates": 30,
 \ "default_action": "complete_import",
 \}
 
