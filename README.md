@@ -1,10 +1,11 @@
-# javaimport.vim
+# javaimport
 
 This plugin complements Java import statement using unite.vim.
 
 ## How to Use
 
-* Create file named '.classpath' just below your Java project directory, and write classpaths (separated with ':') in the file.
+* Create file named '.classpath' just below your Java project directory  
+  , and write classpaths (separated with ':') in the file.
 
 ```:.classpath
 /your/project/directory/src:/your/project/directory/test:/your/project/directory/lib/xxx.jar
@@ -20,12 +21,20 @@ This plugin complements Java import statement using unite.vim.
 
     + Refine and Choose
 
-        ![](https://i.gyazo.com/f3c4bf895edaf8fed644265e7f72d09b.png)\
+        ![](https://i.gyazo.com/f3c4bf895edaf8fed644265e7f72d09b.png)
 
-    + Complementation(and sort import statements)
+    + Complementation(and sort of import statements)
 
-        ![](https://i.gyazo.com/a123fd3e40d61ad3710609cc206c38c6.png)\
+        ![](https://i.gyazo.com/a123fd3e40d61ad3710609cc206c38c6.png)
 
 ## dependency
 
 * unite.vim
+
+## TODO
+
+* rt.jarのパスのとり方変更
+
+* 悲惨なVimScriptのリファクタリング
+
+* TODOの英語化
