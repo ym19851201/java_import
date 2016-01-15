@@ -64,7 +64,7 @@ function! s:unite_javaimport.gather_candidates(args, context)
       let classes += jar_tf
     endfor
 
-    let src_str = substitute(globpath(join(srcs, ','), '**/*.java'), getcwd().'/\(src\)\|\(test\)/', '', 'g')
+    let src_str = substitute(substitute(globpath(join(srcs, ','), '**/*.java'), getcwd().'/\(src\)\|\(test\)/', '', 'g'), '\.java', '', 'g')
     let src_cps = split(src_str, '\n')
     let classes += map(src_cps, 'substitute(v:val, "^/", "", "g")')
   endif
