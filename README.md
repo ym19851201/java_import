@@ -12,6 +12,7 @@ This plugin complements Java import statement using unite.vim.
 ```
 
 * Command
+
     Type one Ex command of the following.
 
     + :Unite javaimport
@@ -23,7 +24,7 @@ This plugin complements Java import statement using unite.vim.
 
         ![](https://i.gyazo.com/f3c4bf895edaf8fed644265e7f72d09b.png)
 
-    + Complementation(and sort of import statements)
+    + Complement (and sort import statements)
 
         ![](https://i.gyazo.com/a123fd3e40d61ad3710609cc206c38c6.png)
 
