@@ -8,7 +8,6 @@ This plugin complements Java import statement using unite.vim.
   , and write directories and path to jar in the file as following.
 
 ```:.javaimport
-/your/project/directory/src:/your/project/directory/test:/your/project/directory/lib/xxx.jar
 {
   'runtime': '/path/to/rt.jar',
 
