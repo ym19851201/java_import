@@ -4,13 +4,14 @@ let s:unite_javaimport = {
 \ "action_table": {
 \   "complete_import": {
 \     "description": "complete",
+\     "is_selectable": 1,
 \   }
 \ },
 \ "max_candidates": 30,
 \ "default_action": "complete_import",
 \}
 
-function! s:unite_javaimport.action_table.complete_import.func(candidate)
+function! s:unite_javaimport.action_table.complete_import.func(candidates)
   let current_row = line('.')
   let current_col = col('.')
 
@@ -19,13 +20,17 @@ function! s:unite_javaimport.action_table.complete_import.func(candidate)
   if first_import == 0
     let package_line = search("^package")
     call append(package_line, "")
-    call append(package_line+1, "import ".a:candidate.word.";")
+    for candidate in a:candidates
+      call append(package_line+1, "import ".candidate.word.";")
+    endfor
     return
   endif
 
   call cursor(1, 1)
   let last_import = search("^import", 'b')
-  call append(last_import, "import ".a:candidate.word.";")
+  for candidate in a:candidates
+    call append(last_import, "import ".candidate.word.";")
+  endfor
   let first_str = printf('%s', first_import)
   let last_str = printf('%s', last_import+1)
   execute first_str.','.last_str.'sort'
