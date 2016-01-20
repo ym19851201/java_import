@@ -34,15 +34,16 @@ function! s:unite_javaimport.action_table.complete_import.func(candidate)
 endfunction
 
 function! s:unite_javaimport.gather_candidates(args, context)
-  let java = system("which java")
-  let java_home = system("readlink ".java)
-  let java_home = system("readlink ".java_home)
-  let rt_jar = substitute(java_home, "/bin/java", "/lib/rt.jar", "g")
+  if filereadable('./.javaimport') == 0
+    return
+  endif
 
-  let jar_tf = systemlist("jar tf ".rt_jar)
+  let dict = eval(join(readfile('./.javaimport')))
+
+  let jar_tf = systemlist("jar tf ".dict.runtime)
   let classes = filter(jar_tf, '
-        \v:val =~ ".*class"
-        \&& v:val !~ "$.*class"
+        \v:val =~ ".*\.class$"
+        \&& v:val !~ "$.*\.class$"
         \&& v:val !~ "^com\.oracle"
         \&& v:val !~ "^com\.sun"
         \&& v:val !~ "^sun"
@@ -55,22 +56,23 @@ function! s:unite_javaimport.gather_candidates(args, context)
         \&& v:val !~ "^java\.lang"
         \')
 
-  if filereadable('./.classpath') == 1
-    let cps = split(readfile('./.classpath')[0], ':')
-    let jars = filter(copy(cps), 'v:val =~ ".*jar"')
-    let srcs = filter(copy(cps), 'v:val !~ ".*jar"')
-    for jar in jars
-      let jar_tf = filter(systemlist("jar tf ".jar), 'v:val =~ ".*class" && v:val !~ "$.*class"')
-      let classes += jar_tf
-    endfor
+  let other_jars = dict.jar
+  for jar in other_jars
+    let jar_tf = filter(systemlist("jar tf ".jar), 'v:val =~ ".*\.class$" && v:val !~ "$.*\.class$"')
+    let classes += jar_tf
+  endfor
 
-    let src_str = substitute(substitute(globpath(join(srcs, ','), '**/*.java'), getcwd().'/\(src\)\|\(test\)/', '', 'g'), '\.java', '', 'g')
-    let src_cps = split(src_str, '\n')
-    let classes += map(src_cps, 'substitute(v:val, "^/", "", "g")')
-  endif
+  let sources = dict.src
+  for src in sources
+    let java_files = split(globpath(src, '**/*.java'), '\n\|\r\n\|\r')
+    let java_files = map(java_files
+    \, 'substitute(substitute(substitute(v:val, src."/", "", "g"), "^./", "", "g"), "\.java$", "", "g")'
+    \)
+    let classes += java_files
+  endfor
 
   return map(classes, '{
-\   "word": substitute(substitute(v:val, ".class", "", "g"), "/", ".", "g"),
+\   "word": substitute(substitute(v:val, "\.class$", "", "g"), "/", ".", "g"),
 \   "source": "javaimport",
 \   "kind": "word",
 \ }')
