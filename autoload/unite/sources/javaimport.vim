@@ -32,7 +32,7 @@ function! s:unite_javaimport.action_table.complete_import.func(candidates)
     call append(last_import, "import ".candidate.word.";")
   endfor
   let first_str = printf('%s', first_import)
-  let last_str = printf('%s', last_import+1)
+  let last_str = printf('%s', last_import+len(a:candidates))
   execute first_str.','.last_str.'sort'
 
   call cursor(current_row, current_col)
