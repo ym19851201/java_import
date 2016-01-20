@@ -43,6 +43,7 @@ This plugin complements Java import statement using unite.vim.
     + Supporting multi candidates
 
         - Choose some candidates with <Space> key (default of unite.vim)
+
         - Hit Return key or Choose 'complete import' action
 
 ## dependency
