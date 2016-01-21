@@ -17,23 +17,22 @@ function! s:unite_javaimport.action_table.complete_import.func(candidates)
 
   call cursor(line('$'), 1)
   let first_import = search("^import")
+  let package_line = search("^package")
   if first_import == 0
-    let package_line = search("^package")
     call append(package_line, "")
-    for candidate in a:candidates
-      call append(package_line+1, "import ".candidate.word.";")
-    endfor
+    call append(package_line+1, map(a:candidates, '"import ".v:val.word.";"'))
     return
   endif
 
   call cursor(1, 1)
   let last_import = search("^import", 'b')
-  for candidate in a:candidates
-    call append(last_import, "import ".candidate.word.";")
-  endfor
+  let current_imports = getline(first_import, last_import)
+  let imports = current_imports + map(a:candidates, '"import ".v:val.word.";"')
+  let imports = sort(My_uniq(imports), 's:compare')
   let first_str = printf('%s', first_import)
-  let last_str = printf('%s', last_import+len(a:candidates))
-  execute first_str.','.last_str.'sort'
+  let last_str = printf('%s', last_import)
+  execute 'silent '.first_str.','.last_str.'delete'
+  call append(package_line + 2, imports)
 
   call cursor(current_row, current_col)
 endfunction
@@ -83,7 +82,27 @@ function! s:unite_javaimport.gather_candidates(args, context)
 \ }')
 endfunction
 
-
 function! unite#sources#javaimport#define()
   return [deepcopy(s:unite_javaimport)]
 endfunction
+
+function! s:compare(l, r)
+  if a:r == ''
+    return 0
+  endif
+  return a:l > a:r
+endfunction
+
+function! My_uniq(list)
+  let ret = []
+  for elem in a:list
+    if elem == ''
+      call add(ret, elem)
+    elseif count(ret, elem) == 0
+      call add(ret, elem)
+    endif
+  endfor
+
+  return ret
+endfunction
+
