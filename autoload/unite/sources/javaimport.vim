@@ -9,7 +9,26 @@ let s:unite_javaimport = {
 \ },
 \ "max_candidates": 30,
 \ "default_action": "complete_import",
+\ "hooks": {},
 \}
+
+function! s:unite_javaimport.hooks.on_init(args, context)
+  let s:dict = eval(join(readfile('./.javaimport')))
+  let sources = s:dict.src
+  let s:java_files = []
+  for src in sources
+    let java_files = split(globpath(src, '**/*.java'), '\n\|\r\n\|\r')
+    let s:java_files += map(java_files
+    \, 'substitute(substitute(substitute(substitute(v:val, src."/", "", "g"), "^./", "", "g"), "\.java$", "", "g"), "/", ".", "g")'
+    \)
+  endfor
+
+  let s:lib_jars = []
+  for jar in s:dict.jar
+    let jar_tf = filter(systemlist("jar tf ".jar), 'v:val =~ ".*\.class$" && v:val !~ "$.*\.class$"')
+    let s:lib_jars += jar_tf
+  endfor
+endfunction
 
 function! s:unite_javaimport.action_table.complete_import.func(candidates)
   let current_row = line('.')
@@ -26,15 +45,49 @@ function! s:unite_javaimport.action_table.complete_import.func(candidates)
 
   call cursor(1, 1)
   let last_import = search("^import", 'b')
-  let current_imports = getline(first_import, last_import)
+  let current_imports = filter(getline(first_import, last_import), 'v:val != ""')
   let imports = current_imports + map(a:candidates, '"import ".v:val.word.";"')
-  let imports = sort(My_uniq(imports), 's:compare')
+  let imports = uniq(sort(imports))
+
   let first_str = printf('%s', first_import)
   let last_str = printf('%s', last_import)
   execute 'silent '.first_str.','.last_str.'delete'
-  call append(package_line + 2, imports)
+
+  let dict =  s:to_dict(imports)
+  let inserts = sort(dict['java'])
+  call add(inserts, '')
+  let inserts += sort(dict['javax'])
+  call add(inserts, '')
+  let inserts += sort(dict['lib'])
+  let inserts += sort(dict['src'])
+  call append(package_line + 2, inserts)
 
   call cursor(current_row, current_col)
+endfunction
+
+function! s:to_dict(list)
+  let java_package_str = 'java'
+  let javax_package_str = 'javax'
+  let src_package_str = 'src'
+  let lib_package_str = 'lib'
+  let src_packages = s:dict.src
+  let lib_packages = s:dict.jar
+  for jar in lib_packages
+    let jar_tf = filter(systemlist("jar tf ".jar), 'v:val =~ ".*\.class$" && v:val !~ "$.*\.class$"')
+  endfor
+
+  let dict = {java_package_str : [], javax_package_str : [], src_package_str : [], lib_package_str : []}
+  for e in a:list
+    if e =~ "^import ".javax_package_str
+      call add(dict[javax_package_str], e)
+    elseif e =~ "^import ".java_package_str
+      call add(dict[java_package_str], e)
+    else
+      call add(dict[src_package_str], e)
+    endif
+  endfor
+
+  return dict
 endfunction
 
 function! s:unite_javaimport.gather_candidates(args, context)
@@ -42,9 +95,7 @@ function! s:unite_javaimport.gather_candidates(args, context)
     return
   endif
 
-  let dict = eval(join(readfile('./.javaimport')))
-
-  let jar_tf = systemlist("jar tf ".dict.runtime)
+  let jar_tf = systemlist("jar tf ".s:dict.runtime)
   let classes = filter(jar_tf, '
         \v:val =~ ".*\.class$"
         \&& v:val !~ "$.*\.class$"
@@ -60,25 +111,16 @@ function! s:unite_javaimport.gather_candidates(args, context)
         \&& v:val !~ "^java\.lang"
         \')
 
-  let other_jars = dict.jar
-  for jar in other_jars
-    let jar_tf = filter(systemlist("jar tf ".jar), 'v:val =~ ".*\.class$" && v:val !~ "$.*\.class$"')
-    let classes += jar_tf
-  endfor
+  let classes += s:lib_jars
 
-  let sources = dict.src
-  for src in sources
-    let java_files = split(globpath(src, '**/*.java'), '\n\|\r\n\|\r')
-    let java_files = map(java_files
-    \, 'substitute(substitute(substitute(v:val, src."/", "", "g"), "^./", "", "g"), "\.java$", "", "g")'
-    \)
-    let classes += java_files
-  endfor
+  let sources = s:dict.src
+  let classes += s:java_files
 
   return map(classes, '{
 \   "word": substitute(substitute(v:val, "\.class$", "", "g"), "/", ".", "g"),
 \   "source": "javaimport",
 \   "kind": "word",
+\   "action__package": split(v:val, "/")[0],
 \ }')
 endfunction
 
